@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ATS Resume Analyzer — Google Colab Edition README</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #f8f5f0;
+    --surface: #ffffff;
+    --card: #fdfcfa;
+    --border: #e8e3db;
+    --accent: #e86835;
+    --accent2: #4a7fe0;
+    --green: #1a8a5a;
+    --amber: #c47a1e;
+    --red: #c0392b;
+    --text: #1a1a1a;
+    --muted: #6b6560;
+    --colab: #F9AB00;
+    --colab2: #4285F4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* ── HERO ─────────────────────────────────────────────────────────── */
+  .hero {
+    background: #1a1a2e;
+    padding: 72px 40px 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse 50% 60% at 20% 50%, rgba(242,168,0,0.12), transparent),
+      radial-gradient(ellipse 50% 60% at 80% 50%, rgba(66,133,244,0.12), transparent);
+    pointer-events: none;
+  }
+
+  /* Decorative notebook lines */
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 39px,
+      rgba(255,255,255,0.04) 39px,
+      rgba(255,255,255,0.04) 40px
+    );
+    pointer-events: none;
+  }
+
+  .colab-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(249,171,0,0.15);
+    border: 1px solid rgba(249,171,0,0.3);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--colab);
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+    position: relative; z-index: 1;
+  }
+
+  .badge-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    position: relative; z-index: 1;
+  }
+
+  .badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+  .badge-orange{ color: #F9AB00; border-color: rgba(249,171,0,0.4);   background: rgba(249,171,0,0.08); }
+  .badge-blue  { color: #4285F4; border-color: rgba(66,133,244,0.4);  background: rgba(66,133,244,0.08); }
+  .badge-green { color: #34A853; border-color: rgba(52,168,83,0.4);   background: rgba(52,168,83,0.08); }
+  .badge-gray  { color: #9aa0b0; border-color: rgba(154,160,176,0.3); background: rgba(154,160,176,0.08); }
+
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--colab);
+    margin-bottom: 14px;
+    position: relative; z-index: 1;
+  }
+
+  .hero-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(36px, 5.5vw, 62px);
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.05;
+    margin-bottom: 10px;
+    position: relative; z-index: 1;
+  }
+
+  .hero-title span {
+    background: linear-gradient(90deg, var(--colab), var(--colab2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    color: #8899bb;
+    max-width: 560px;
+    margin: 0 auto 28px;
+    position: relative; z-index: 1;
+  }
+
+  .author-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 30px;
+    padding: 6px 16px 6px 6px;
+    position: relative; z-index: 1;
+  }
+  .author-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--colab), var(--colab2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 11px; color: #fff;
+  }
+  .author-name { font-size: 13px; font-weight: 500; color: #ccc; }
+
+  /* ── LAYOUT ───────────────────────────────────────────────────────── */
+  .container { max-width: 900px; margin: 0 auto; padding: 0 32px; }
+
+  /* ── SECTIONS ─────────────────────────────────────────────────────── */
+  .section { margin-top: 56px; }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent2);
+    margin: 22px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  p { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+
+  /* ── CODE BLOCKS ──────────────────────────────────────────────────── */
+  .code-block {
+    background: #1a1a2e;
+    border: 1px solid #2a2a45;
+    border-left: 3px solid var(--colab);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 14px 0;
+    overflow-x: auto;
+  }
+  .code-block pre {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: #d4d8e8;
+    line-height: 1.9;
+  }
+  .code-block .cmd { color: #F9AB00; }
+  .code-block .cmt { color: #5a6070; }
+  .code-block .str { color: #34A853; }
+  .code-block .kw  { color: #4285F4; }
+  .code-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  /* ── CARDS ────────────────────────────────────────────────────────── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+  .card-icon  { font-size: 22px; margin-bottom: 10px; }
+  .card-title { font-family: 'Fraunces', serif; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+  .card-desc  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── TABLES ───────────────────────────────────────────────────────── */
+  .module-table { width: 100%; border-collapse: collapse; margin: 16px 0; border-radius: 10px; overflow: hidden; }
+  .module-table th {
+    background: #1a1a2e;
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+  }
+  .module-table td {
+    padding: 11px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .module-table tr:nth-child(odd)  td { background: var(--card); }
+  .module-table tr:nth-child(even) td { background: var(--surface); }
+  .module-table tr:last-child td { border-bottom: none; }
+  .module-table .num  { font-family: 'Space Mono', monospace; color: var(--accent); font-weight: 700; }
+  .module-table .name { font-weight: 600; color: var(--text); }
+  .module-table .desc { color: var(--muted); }
+
+  /* ── STEP LIST ────────────────────────────────────────────────────── */
+  .steps { list-style: none; margin: 16px 0; }
+  .steps li { display: flex; gap: 16px; margin-bottom: 14px; align-items: flex-start; }
+  .step-num {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--colab), var(--colab2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px; font-weight: 700; color: #fff;
+  }
+  .step-body { padding-top: 4px; font-size: 13px; color: var(--muted); }
+  .step-body strong { color: var(--text); font-weight: 600; }
+
+  /* ── SCORE BANDS ──────────────────────────────────────────────────── */
+  .score-bands { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+  .band {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+  }
+  .band-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .band-bar { height: 100%; border-radius: 3px; }
+  .band-label { font-family: 'Space Mono', monospace; font-size: 12px; min-width: 120px; }
+  .band-pct   { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); min-width: 55px; text-align: right; }
+
+  /* ── ALERTS ───────────────────────────────────────────────────────── */
+  .alert {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 13px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .alert-orange { background: rgba(249,171,0,0.08); border: 1px solid rgba(249,171,0,0.25); color: #c47a1e; }
+  .alert-blue   { background: rgba(66,133,244,0.08); border: 1px solid rgba(66,133,244,0.25); color: #4a7fe0; }
+  .alert-green  { background: rgba(52,168,83,0.08); border: 1px solid rgba(52,168,83,0.25); color: #1a8a5a; }
+
+  /* ── COMPARISON TABLE ─────────────────────────────────────────────── */
+  .diff-table { width: 100%; border-collapse: collapse; margin: 16px 0; border-radius: 10px; overflow: hidden; }
+  .diff-table th {
+    padding: 12px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: left;
+  }
+  .diff-table th:first-child { background: #1a1a2e; color: #fff; }
+  .diff-table th.colab-col   { background: #F9AB00; color: #1a1a1a; }
+  .diff-table th.local-col   { background: #4a7fe0; color: #fff; }
+  .diff-table td {
+    padding: 10px 16px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .diff-table tr:nth-child(odd) td  { background: var(--card); }
+  .diff-table tr:nth-child(even) td { background: var(--surface); }
+  .diff-table tr:last-child td { border-bottom: none; }
+  .diff-table .feat  { font-weight: 600; color: var(--text); }
+  .diff-table .colab-val { color: #c47a1e; }
+  .diff-table .local-val { color: #4a7fe0; }
+
+  /* ── INLINE CODE ──────────────────────────────────────────────────── */
+  code {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    background: rgba(249,171,0,0.1);
+    color: var(--amber);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  ul.plain-list { list-style: none; padding: 0; }
+  ul.plain-list li {
+    padding: 6px 0 6px 20px;
+    font-size: 13px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  ul.plain-list li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+  ul.plain-list li:last-child { border-bottom: none; }
+
+  /* ── FOOTER ───────────────────────────────────────────────────────── */
+  .footer {
+    margin-top: 80px;
+    border-top: 2px solid var(--border);
+    padding: 32px 40px;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    background: var(--surface);
+  }
+
+  /* ── WIDGET DIAGRAM ───────────────────────────────────────────────── */
+  .widget-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .widget-card {
+    background: #1a1a2e;
+    border: 1px solid #2a2a45;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .widget-name { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--colab); font-weight: 700; margin-bottom: 4px; }
+  .widget-desc { font-size: 12px; color: #8899bb; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ─────────────────────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="colab-badge">
+    <span>📓</span>
+    <span>Google Colab — ipywidgets Edition</span>
+  </div>
+  <div class="badge-row">
+    <span class="badge badge-orange">ipywidgets</span>
+    <span class="badge badge-blue">IPython</span>
+    <span class="badge badge-green">pdfplumber</span>
+    <span class="badge badge-gray">NLTK</span>
+    <span class="badge badge-gray">python-docx</span>
+  </div>
+  <div class="hero-eyebrow">README — Google Colab Edition</div>
+  <h1 class="hero-title">ATS Resume <span>Analyzer</span></h1>
+  <p class="hero-sub">A fully browser-rendered ATS scoring tool for Google Colab — no display server, no local install, no Tkinter. Runs anywhere with a browser.</p>
+  <div class="author-chip">
+    <div class="author-avatar">NB</div>
+    <span class="author-name">Natasha Bogam</span>
+  </div>
+</div>
+
+<!-- ── CONTENT ───────────────────────────────────────────────────────────── -->
+<div class="container">
+
+  <!-- Why Colab -->
+  <div class="section">
+    <div class="section-label">Overview</div>
+    <h2>Why the Colab Edition?</h2>
+    <p>Google Colab runs on a headless Ubuntu VM — there is no graphical display server (<code>$DISPLAY</code> variable is unset). Any attempt to open a Tkinter window fails immediately with:</p>
+    <div class="code-block"><pre><span class="str">TclError: no display name and no $DISPLAY environment variable</span></pre></div>
+    <p>This edition solves the problem entirely by replacing Tkinter with <strong style="color:var(--text)">ipywidgets</strong> — UI components that render as HTML inside the Colab notebook output cell, with no OS-level window required.</p>
+    <div class="card-grid" style="margin-top:20px">
+      <div class="card"><div class="card-icon">🌐</div><div class="card-title">Browser-native</div><div class="card-desc">Widgets render as HTML in the notebook — works on any device with a browser.</div></div>
+      <div class="card"><div class="card-icon">☁️</div><div class="card-title">Zero local setup</div><div class="card-desc">Open the notebook in Colab, run one cell, done. No Python environment to configure.</div></div>
+      <div class="card"><div class="card-icon">📄</div><div class="card-title">HTML Report</div><div class="card-desc">Full styled report with SVG score ring, skill pills, and stats grid rendered inline.</div></div>
+      <div class="card"><div class="card-icon">🔄</div><div class="card-title">No threading needed</div><div class="card-desc">Colab's event loop handles widget updates — analysis runs directly in on_click.</div></div>
+    </div>
+  </div>
+
+  <!-- Setup -->
+  <div class="section">
+    <div class="section-label">Setup</div>
+    <h2>Getting Started in Colab</h2>
+
+    <h3>Step 1 — Install dependencies (run once per session)</h3>
+    <div class="code-label">Colab cell</div>
+    <div class="code-block"><pre><span class="cmd">!pip install</span> pdfplumber python-docx nltk ipywidgets <span class="str">-q</span>
+
+<span class="kw">import</span> nltk
+nltk.download(<span class="str">'stopwords'</span>)
+nltk.download(<span class="str">'wordnet'</span>)
+nltk.download(<span class="str">'punkt'</span>)</pre></div>
+
+    <h3>Step 2 — Load and run the script</h3>
+    <div class="code-label">Option A — Upload the file</div>
+    <div class="code-block"><pre><span class="cmd">exec</span>(open(<span class="str">'ats_resume_analyzer_colab.py'</span>).read())</pre></div>
+    <div class="code-label">Option B — Paste directly</div>
+    <div class="code-block"><pre><span class="cmt"># Paste the entire script into a cell and run it.</span>
+<span class="cmt"># The widget UI launches automatically at the end.</span></pre></div>
+
+    <div class="alert alert-green">
+      <div class="alert-icon">✅</div>
+      <div>The widget launches automatically when the script finishes running. No additional function call is needed.</div>
+    </div>
+    <div class="alert alert-orange">
+      <div class="alert-icon">⚠️</div>
+      <div><strong>Session restart:</strong> Library installs persist only for the Colab session. Re-run Step 1 if you disconnect or restart the runtime.</div>
+    </div>
+  </div>
+
+  <!-- Usage -->
+  <div class="section">
+    <div class="section-label">Usage</div>
+    <h2>How to Use</h2>
+    <ul class="steps">
+      <li><div class="step-num">1</div><div class="step-body"><strong>Run the setup cell</strong> — Install libraries and download NLTK data.</div></li>
+      <li><div class="step-num">2</div><div class="step-body"><strong>Run the script cell</strong> — The widget UI appears inline below the cell output.</div></li>
+      <li><div class="step-num">3</div><div class="step-body"><strong>Browse Resume</strong> — Click the file upload button and select your <code>.pdf</code> or <code>.docx</code> resume. File size and name appear in green on success.</div></li>
+      <li><div class="step-num">4</div><div class="step-body"><strong>Paste JD</strong> — Click inside the Job Description textarea and paste the full job description.</div></li>
+      <li><div class="step-num">5</div><div class="step-body"><strong>Analyze</strong> — Click "Analyze Resume". The status bar turns amber while processing, then green with your score.</div></li>
+      <li><div class="step-num">6</div><div class="step-body"><strong>Read the Report</strong> — A fully styled HTML report appears inline with an SVG score ring, skill pills, and suggestions.</div></li>
+      <li><div class="step-num">7</div><div class="step-body"><strong>Clear</strong> — Click the Clear button to reset all fields and run a new analysis.</div></li>
+    </ul>
+  </div>
+
+  <!-- Widgets -->
+  <div class="section">
+    <div class="section-label">UI Components</div>
+    <h2>ipywidgets Used</h2>
+    <div class="widget-grid">
+      <div class="widget-card"><div class="widget-name">widgets.FileUpload</div><div class="widget-desc">Accepts .pdf / .docx / .doc. Returns raw bytes — no temp file written to disk.</div></div>
+      <div class="widget-card"><div class="widget-name">widgets.HTML (file_info)</div><div class="widget-desc">Status label showing filename and KB size in green after upload.</div></div>
+      <div class="widget-card"><div class="widget-name">widgets.Textarea (jd_box)</div><div class="widget-desc">Full-width job description input with placeholder text.</div></div>
+      <div class="widget-card"><div class="widget-name">widgets.Button (Analyze)</div><div class="widget-desc">Disabled during analysis to prevent double-submit.</div></div>
+      <div class="widget-card"><div class="widget-name">widgets.Button (Clear)</div><div class="widget-desc">Resets all fields without re-running the cell.</div></div>
+      <div class="widget-card"><div class="widget-name">widgets.HTML (status_bar)</div><div class="widget-desc">Colour-coded: amber=loading, green=done, red=error.</div></div>
+      <div class="widget-card"><div class="widget-name">widgets.Output</div><div class="widget-desc">Context manager that renders the full HTML report inline via display(HTML(...)).</div></div>
+    </div>
+  </div>
+
+  <!-- Architecture -->
+  <div class="section">
+    <div class="section-label">Architecture</div>
+    <h2>Module Breakdown</h2>
+    <table class="module-table">
+      <thead><tr><th>#</th><th>Module</th><th>Responsibility</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td class="name">Text Extraction</td><td class="desc">Reads bytes from browser upload via <code>io.BytesIO</code> — pdfplumber → PyPDF2 fallback for PDF; python-docx for DOCX</td></tr>
+        <tr><td class="num">2</td><td class="name">Preprocessing</td><td class="desc">Lowercase → compound protection → punctuation removal → tokenise → stopwords → lemmatise</td></tr>
+        <tr><td class="num">3</td><td class="name">Skill Extraction</td><td class="desc">Word-boundary regex matching against 100+ taxonomy skills across 10 domains</td></tr>
+        <tr><td class="num">4</td><td class="name">Scoring Engine</td><td class="desc">Weighted composite: Skill Match (70%) + Keyword Overlap (30%)</td></tr>
+        <tr><td class="num">5</td><td class="name">Suggestions</td><td class="desc">Band-based recommendations + missing skill pills + quantification & structure tips</td></tr>
+        <tr><td class="num">6</td><td class="name">Pipeline</td><td class="desc"><code>analyze_resume(filename, file_bytes, jd)</code> — orchestrates modules 1–5 end-to-end</td></tr>
+        <tr><td class="num">7</td><td class="name">HTML Report Builder</td><td class="desc">Builds self-contained HTML with inline SVG score ring, skill pills, dark-themed stats grid</td></tr>
+        <tr><td class="num">8</td><td class="name">Colab UI</td><td class="desc"><code>launch_ats_app()</code> — renders all ipywidgets and handles on_click callbacks</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Scoring -->
+  <div class="section">
+    <div class="section-label">Scoring</div>
+    <h2>ATS Score Formula</h2>
+    <div class="code-block"><pre><span class="cmt"># Skill Match Score (70%)</span>
+skill_score = len(resume_skills <span class="str">∩</span> jd_skills) / len(jd_skills) × 100
+
+<span class="cmt"># Keyword Overlap Score (30%)</span>
+kw_score    = len(resume_tokens <span class="str">∩</span> jd_tokens)  / len(jd_tokens)  × 100
+
+<span class="cmt"># Composite ATS Score</span>
+ats_score   = <span class="cmd">round</span>(0.70 × skill_score + 0.30 × kw_score, 1)</pre></div>
+
+    <div class="score-bands">
+      <div class="band">
+        <div class="band-label" style="color:#1a8a5a">🏆 Excellent</div>
+        <div class="band-bar-wrap"><div class="band-bar" style="width:100%;background:#34A853"></div></div>
+        <div class="band-pct" style="color:#1a8a5a">≥ 80%</div>
+      </div>
+      <div class="band">
+        <div class="band-label" style="color:var(--accent2)">👍 Good</div>
+        <div class="band-bar-wrap"><div class="band-bar" style="width:70%;background:var(--accent2)"></div></div>
+        <div class="band-pct" style="color:var(--accent2)">60–79%</div>
+      </div>
+      <div class="band">
+        <div class="band-label" style="color:var(--amber)">🤔 Moderate</div>
+        <div class="band-bar-wrap"><div class="band-bar" style="width:50%;background:var(--colab)"></div></div>
+        <div class="band-pct" style="color:var(--amber)">40–59%</div>
+      </div>
+      <div class="band">
+        <div class="band-label" style="color:var(--red)">⚠ Low</div>
+        <div class="band-bar-wrap"><div class="band-bar" style="width:30%;background:var(--red)"></div></div>
+        <div class="band-pct" style="color:var(--red)">< 40%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Colab vs Local -->
+  <div class="section">
+    <div class="section-label">Comparison</div>
+    <h2>Colab vs. Local Edition</h2>
+    <table class="diff-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th class="colab-col">Colab Edition (this)</th>
+          <th class="local-col">VS Code / Local</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="feat">UI Framework</td><td class="colab-val">ipywidgets + IPython HTML</td><td class="local-val">Tkinter (OS window)</td></tr>
+        <tr><td class="feat">File Input</td><td class="colab-val">widgets.FileUpload → raw bytes</td><td class="local-val">filedialog → disk path</td></tr>
+        <tr><td class="feat">File Handling</td><td class="colab-val">io.BytesIO — in-memory</td><td class="local-val">open(filepath, 'rb')</td></tr>
+        <tr><td class="feat">Output</td><td class="colab-val">HTML report via display(HTML(...))</td><td class="local-val">4-tab ttk.Notebook</td></tr>
+        <tr><td class="feat">Threading</td><td class="colab-val">Not needed — direct call</td><td class="local-val">threading.Thread required</td></tr>
+        <tr><td class="feat">Score Visual</td><td class="colab-val">Inline SVG ring in HTML</td><td class="local-val">Canvas arc animation</td></tr>
+        <tr><td class="feat">Requires Display</td><td class="colab-val">No — renders in browser</td><td class="local-val">Yes — X11/Wayland/Win</td></tr>
+        <tr><td class="feat">Tooltips</td><td class="colab-val">Not included</td><td class="local-val">Custom Tooltip class</td></tr>
+        <tr><td class="feat">Dependency Badge</td><td class="colab-val">Not included</td><td class="local-val">Status bar right side</td></tr>
+        <tr><td class="feat">Platform</td><td class="colab-val">Any browser (remote or local)</td><td class="local-val">Windows / macOS / Linux</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Limitations -->
+  <div class="section">
+    <div class="section-label">Limitations</div>
+    <h2>Known Limitations</h2>
+    <ul class="plain-list">
+      <li>Scanned / image-only PDFs — text extraction will fail (OCR not included)</li>
+      <li>Niche skills not in SKILL_TAXONOMY will be missed</li>
+      <li>No semantic matching — 'ML' and 'machine learning' treated as different tokens</li>
+      <li>English-only — stopwords and lemmatisation are English only</li>
+      <li>No persistence — results not saved between sessions; no database</li>
+      <li>No downloadable export — HTML report is inline only (no PDF save)</li>
+      <li>Requires cell re-run after Colab session restart to reload the widget</li>
+    </ul>
+  </div>
+
+  <!-- Libraries -->
+  <div class="section">
+    <div class="section-label">Dependencies</div>
+    <h2>Libraries Used</h2>
+    <table class="module-table">
+      <thead><tr><th>Library</th><th>Install</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td class="name">pdfplumber</td><td class="num">pip install</td><td class="desc">High-accuracy PDF text extraction (recommended)</td></tr>
+        <tr><td class="name">PyPDF2</td><td class="num">pip install</td><td class="desc">Fallback PDF reader if pdfplumber unavailable</td></tr>
+        <tr><td class="name">python-docx</td><td class="num">pip install</td><td class="desc">Extract text from .docx / .doc files</td></tr>
+        <tr><td class="name">nltk</td><td class="num">pip install</td><td class="desc">Stopword lists and WordNet lemmatiser (optional)</td></tr>
+        <tr><td class="name">ipywidgets</td><td class="num">pip install</td><td class="desc">FileUpload, Textarea, Button, Output — Colab UI</td></tr>
+        <tr><td class="name">IPython</td><td class="num">pre-installed</td><td class="desc">display(), HTML(), clear_output() for rendering</td></tr>
+        <tr><td class="name">io / os / re</td><td class="num">stdlib</td><td class="desc">BytesIO, file extension detection, regex matching</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /container -->
+
+<div class="footer">
+  ATS Resume Analyzer — Google Colab Edition &nbsp;|&nbsp; v1.0 &nbsp;|&nbsp; Prepared by Natasha Bogam &nbsp;|&nbsp; April 2026<br/>
+  <span style="color:#F9AB00;margin-top:6px;display:block">Dept. of CSE (AI & Data Science) | Shree Siddheshwar Women's College of Engineering, Solapur</span>
+</div>
+
+</body>
+</html>
